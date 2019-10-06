@@ -1,0 +1,16 @@
+# Copyright (c) 2018, Linaro Limited
+# SPDX-License-Identifier: Apache-2.0
+
+title: BMI088 Inertial measurement unit
+
+description: >
+    This is a representation of the BMI088 gyro sensor
+
+compatible: "bosch,bmi088-gyro"
+
+include: spi-device.yaml
+
+properties:
+    int-gpios:
+      type: phandle-array
+      required: false

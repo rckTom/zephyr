@@ -1,0 +1,77 @@
+# Kconfig - Bosch BMI088 inertial measurement configuration options
+
+#
+# Copyright (c) 2016 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig BMI088_ACCEL
+	bool "Bosch BMI088 inertial measurement unit accelerometer driver"
+	depends on SPI
+	help
+	  Enable accelerometer of the Bosch BMI088 inertial measurement unit
+
+if BMI088_ACCEL
+
+choice
+	prompt "Accelerometer range setting"
+	default BMI088_ACCEL_RANGE_24G
+
+config BMI088_ACCEL_RANGE_3G
+	bool "3G"
+
+config BMI088_ACCEL_RANGE_6G
+	bool "6G"
+
+config BMI088_ACCEL_RANGE_12G
+	bool "12G"
+
+config BMI088_ACCEL_RANGE_24G
+	bool "24G"
+endchoice
+
+choice
+	prompt "Accelerometer bandwidth setting"
+	default BMI088_ACCEL_BANDWITH_OSR_1
+
+config BMI088_ACCEL_BANDWITH_OSR_1
+	bool "OSR 1"
+
+config BMI088_ACCEL_BANDWITH_OSR_2
+	bool "OSR 2"
+
+config BMI088_ACCEL_BANDWITH_OSR_4
+	bool "OSR 4"
+endchoice
+
+choice
+	prompt "Accelerometer sampling frequency."
+	default BMI088_ACCEL_ODR_200
+
+config BMI088_ACCEL_ODR_25_2
+	bool "12.5 Hz"
+
+config BMI088_ACCEL_ODR_25
+	bool "25 Hz"
+
+config BMI088_ACCEL_ODR_50
+	bool "50 Hz"
+
+config BMI088_ACCEL_ODR_100
+	bool "100 Hz"
+
+config BMI088_ACCEL_ODR_200
+	bool "200 Hz"
+
+config BMI088_ACCEL_ODR_400
+	bool "400 Hz"
+
+config BMI088_ACCEL_ODR_800
+	bool "800 Hz"
+
+config BMI088_ACCEL_ODR_1600
+	bool "1600 Hz"
+endchoice
+
+endif # BMI088_ACCEL

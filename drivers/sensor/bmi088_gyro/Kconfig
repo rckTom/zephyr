@@ -1,0 +1,66 @@
+# Kconfig - Bosch BMI088 Gyro inertial measurement configuration options
+
+#
+# Copyright (c) 2016 Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig BMI088_GYRO
+	bool "Bosch BMI088 inertial measurement unit gyro driver"
+	depends on SPI
+	help
+	  Enable gyro of the Bosch BMI088 inertial measurement unit
+
+if BMI088_GYRO
+
+choice
+	prompt "Gyroscope range setting."
+	default BMI088_GYRO_RANGE_500DPS
+
+config BMI088_GYRO_RANGE_2000DPS
+	bool "2000 DPS"
+
+config BMI088_GYRO_RANGE_1000DPS
+	bool "1000 DPS"
+
+config BMI088_GYRO_RANGE_500DPS
+	bool "500 DPS"
+
+config BMI088_GYRO_RANGE_250DPS
+	bool "250 DPS"
+
+config BMI088_GYRO_RANGE_125DPS
+	bool "125 DPS"
+endchoice
+
+choice
+	prompt "Gyroscope sampling frequency."
+	default BMI088_GYRO_ODR_1000_BW_116
+
+config BMI088_GYRO_ODR_2000_BW_532
+	bool "ODR 2000 Hz, Bandwidth 532 Hz"
+
+config BMI088_GYRO_ODR_2000_BW_230
+	bool "ODR 2000 Hz, Bandwidth 230 Hz"
+
+config BMI088_GYRO_ODR_1000_BW_116
+	bool "ODR 1000 Hz, Bandwidth 116 Hz"
+
+config BMI088_GYRO_ODR_400_BW_47
+	bool "ODR 400 Hz, Bandwidth 47 Hz"
+
+config BMI088_GYRO_ODR_200_BW_23
+	bool "ODR 200 Hz, Bandwidth 23 Hz"
+
+config BMI088_GYRO_ODR_100_BW_64
+	bool "ODR 200 Hz, Bandwidth 64 Hz"
+
+config BMI088_GYRO_ODR_100_BW_32
+	bool "ODR 100 Hz, Bandwidth 32 Hz"
+
+config BMI088_GYRO_ODR_100_BW_12
+	bool "ODR 100 Hz, Bandwidth 12 Hz"
+endchoice
+
+endif # BMI088_GYRO
