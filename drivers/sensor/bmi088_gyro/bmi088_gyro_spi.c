@@ -5,7 +5,7 @@
 LOG_MODULE_DECLARE(bmi088_gyro);
 
 #define SPI_CS NULL
-#if defined(DT_INST_0_MEAS_MS5607_CS_GPIOS_CONTROLLER)
+#if defined(DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_CONTROLLER)
 static struct spi_cs_control bmi088_gyr_cs_ctrl;
 #endif
 
