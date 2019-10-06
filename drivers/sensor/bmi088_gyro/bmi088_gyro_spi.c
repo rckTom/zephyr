@@ -107,19 +107,19 @@ int bmi088_gyr_spi_init(struct bmi088_gyr_data *data)
 {
     data->tf = &bmi088_gyr_spi_tf;
 
-#if defined(DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_CONTROLLER)
-    bmi088_gyr_cs_ctrl.gpio_dev = device_get_binding(
-        DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_CONTROLLER
-    );
+    if (IS_ENABLED(DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_CONTROLLER)){
+        bmi088_gyr_cs_ctrl.gpio_dev = device_get_binding(
+                        DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_CONTROLLER);
     
-    if (!bmi088_gyr_cs_ctrl.gpio_dev) {
-        LOG_ERR("Unable to get gpio device for chip select");
-        return -ENODEV;
+        if (!bmi088_gyr_cs_ctrl.gpio_dev) {
+            LOG_ERR("Unable to get gpio device for chip select");
+            return -ENODEV;
+        }
+
+        bmi088_gyr_cs_ctrl.gpio_pin = DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_PIN;
+        bmi088_gyr_cs_ctrl.delay = 1U;
+        bmi088_gyr_spi_conf.cs = &bmi088_gyr_cs_ctrl;
     }
-    
-    bmi088_gyr_cs_ctrl.gpio_pin = DT_INST_0_BOSCH_BMI088_GYRO_CS_GPIOS_PIN;
-    bmi088_gyr_cs_ctrl.delay = 1U;
-    bmi088_gyr_spi_conf.cs = &bmi088_gyr_cs_ctrl;
-#endif
+
     return 0;
 }
