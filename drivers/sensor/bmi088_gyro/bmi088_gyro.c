@@ -142,6 +142,11 @@ static int bmi088_gyr_attr_set(struct device *dev, enum sensor_channel chan,
     struct bmi088_gyr_data *data = dev->driver_data;
     u8_t reg;
     u8_t reg_val; 
+
+    if (chan !=  SENSOR_CHAN_ALL) {
+        return -EINVAL;
+    }
+
     if (attr == SENSOR_ATTR_FULL_SCALE) {
         reg = BMI088_REG_GYRO_RANGE;
         switch(val->val1) {
@@ -159,6 +164,8 @@ static int bmi088_gyr_attr_set(struct device *dev, enum sensor_channel chan,
             break;
             case 125:
                 reg_val = BMI088_GYRO_RANGE_125;
+            default:
+                return -EINVAL;
         }
     } else if (attr == BMI088_GYRO_ATTR_BW) {
         switch (val->val1) {   
@@ -185,18 +192,18 @@ static int bmi088_gyr_attr_set(struct device *dev, enum sensor_channel chan,
             break;
             case 532:
                 reg_val = BMI088_GYRO_BANDWITH_532;
+            default:
+                return -EINVAL
         }
-    }
-
-    if (chan !=  SENSOR_CHAN_ALL) {
-        return -EINVAL;
     }
 
     int res = data->tf->write_register(data, reg, 1, &reg_val);
     if (res != 0) {
         LOG_ERR("unable to set attribute");
-        return -EINVAL;
+        return res;
     }
+
+    return 0;
 }
 
 static int bmi088_gyr_channel_get(struct device *dev, enum sensor_channel chan,
@@ -279,14 +286,14 @@ static int bmi088_gyr_init(struct device *dev)
     res = data->tf->write_register(data, BMI088_REG_GYRO_BANDWITH, 1, &reg_val);
     if (res != 0) {
         LOG_ERR("unable to set default bandwith");
-        return -EINVAL;
+        return res;
     }
 
     reg_val = BMI088_GYRO_DEFAULT_RANGE;
     res = data->tf->write_register(data, BMI088_REG_GYRO_RANGE, 1, &reg_val);
     if (res != 0) {
         LOG_ERR("unable to set default range");
-        return -EINVAL;
+        return res;
     }
 
     return  0;
