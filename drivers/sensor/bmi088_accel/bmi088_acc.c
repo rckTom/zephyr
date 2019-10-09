@@ -98,6 +98,27 @@ static void bmi088_acc_samples_convert(struct bmi088_acc_data *data,
     }
 }
 
+static int bmi088_acc_enable(struct bmi088_acc_data *data)
+{
+    u8_t reg_val = BMI088_ACC_PWR_CONF_ACTIVE;
+    int res = data->tf->write_register(data, BMI088_REG_ACC_PWR_CONF, 1,
+                                       &reg_val);
+    if (res != 0) {
+        return res;
+    }
+
+    k_sleep(1);
+
+    reg_val = BMI088_ACC_PWR_CTRL_ACC_ON;
+    res = data->tf->write_register(data, BMI088_REG_ACC_PWR_CTRL, 1,
+                                       &reg_val;
+    if (res != 0) {
+        return res;
+    }
+
+    k_sleep(5);
+}
+
 static void bmi088_samples_convert(struct bmi088_acc_data *data,
                                    enum sensor_channel channel)
 {
@@ -238,9 +259,14 @@ static int bmi088_self_test(struct device *dev)
         return res;
     }
 
+    if (reg_val != 0x1E) {
+        return -EINVAL;
+    }
+
     k_sleep(1);
 
-    reg_val = BMI088_REG_ACC_PWR_CONF
+    res = bmi088_acc_enable();
+    return res;
 }
 
 int bmi088_acc_init(struct device *dev)
@@ -268,17 +294,15 @@ int bmi088_acc_init(struct device *dev)
         bmi088_i2c_init(data);
     }
 
+    res = bmi088_acc_enable();
+    if (res != 0) {
+        return res;
+    }
+
     res = data->tf->read_register(data, BMI088_REG_ACC_CHIP_ID, 1, &reg);
-    if(res != 0) {
+    if (res != 0) {
         return res;
     }
-
-    reg_val = BMI088_ACC_PWR_CTRL_ACC_ON;
-    res = data->tf->write_register(data, BMI088_REG_ACC_PWR_CTRL, 1, &reg_val);
-    if (res != 0){
-        return res;
-    }
-
 
     res = bmi088_self_test(dev);
     return  res;
