@@ -5,94 +5,71 @@
 #include <zephyr.h>
 #include <device.h>
 
+#define BMI088_REG_ACC_SOFTRESET       (u8_t) 0x7E
+#define BMI088_REG_ACC_PWR_CTRL        (u8_t) 0x7D
+#define BMI088_REG_ACC_PWR_CONF        (u8_t) 0x7C
+#define BMI088_REG_ACC_SELF_TEST       (u8_t) 0x6D
+#define BMI088_REG_INT_MAP_DATA        (u8_t) 0x58
+#define BMI088_REG_INT2_IO_CONF        (u8_t) 0x54
+#define BMI088_REG_INT1_IO_CONF        (u8_t) 0x53
+#define BMI088_REG_ACC_RANGE           (u8_t) 0x41
+#define BMI088_REG_ACC_CONF            (u8_t) 0x40
+#define BMI088_REG_TEMP_LSB            (u8_t) 0x23
+#define BMI088_REG_TEMP_MSB            (u8_t) 0x22
+#define BMI088_REG_ACC_INT_STAT_1      (u8_t) 0x1D
+#define BMI088_REG_SENSORTIME_2        (u8_t) 0x1A
+#define BMI088_REG_SENSORTIME_1        (u8_t) 0x19
+#define BMI088_REG_SENSORTIME_0        (u8_t) 0x18
+#define BMI088_REG_ACC_Z_MSB           (u8_t) 0x17
+#define BMI088_REG_ACC_Z_LSB           (u8_t) 0x16
+#define BMI088_REG_ACC_Y_MSB           (u8_t) 0x15
+#define BMI088_REG_ACC_Y_LSB           (u8_t) 0x14
+#define BMI088_REG_ACC_X_MSB           (u8_t) 0x13
+#define BMI088_REG_ACC_X_LSB           (u8_t) 0x12
+#define BMI088_REG_ACC_STATUS          (u8_t) 0x03
+#define BMI088_REG_ACC_ERR_REG         (u8_t) 0x02
+#define BMI088_REG_ACC_CHIP_ID         (u8_t) 0x00
 
-/* The registers are prefixed with a bit that determins  if the register is
-part of the acceleration module or gyro module. This is necessarey because spi
-opearations are different on accelration registers than on gyro registers */
+#define BMI088_MASK_ACC_CONF_BANDWITH  (u8_t) 0b11110000
+#define BMI088_MASK_ACC_CONF_ODR       (u8_t) 0b00001111
+#define BMI088_MASK_ACC_RANGE          (u8_t) 0b00000011
 
-#define BMI088_REG_ACC_SOFTRESET       (u16_t) 0x7E | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_PWR_CTRL        (u16_t) 0x7D | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_PWR_CONF        (u16_t) 0x7C | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_SELF_TEST       (u16_t) 0x6D | ((u16_t)1 << 8)
-#define BMI088_REG_INT_MAP_DATA        (u16_t) 0x58 | ((u16_t)1 << 8)
-#define BMI088_REG_INT2_IO_CTRL        (u16_t) 0x54 | ((u16_t)1 << 8)
-#define BMI088_REG_INT1_IO_CTRL        (u16_t) 0x53 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_RANGE           (u16_t) 0x41 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_CONF            (u16_t) 0x40 | ((u16_t)1 << 8)
-#define BMI088_REG_TEMP_LSB            (u16_t) 0x23 | ((u16_t)1 << 8)
-#define BMI088_REG_TEMP_MSB            (u16_t) 0x22 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_INT_STAT_1      (u16_t) 0x1D | ((u16_t)1 << 8)
-#define BMI088_REG_SENSORTIME_2        (u16_t) 0x1A | ((u16_t)1 << 8)
-#define BMI088_REG_SENSORTIME_1        (u16_t) 0x19 | ((u16_t)1 << 8)
-#define BMI088_REG_SENSORTIME_0        (u16_t) 0x18 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_Z_MSB           (u16_t) 0x17 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_Z_LSB           (u16_t) 0x16 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_Y_MSB           (u16_t) 0x15 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_Y_LSB           (u16_t) 0x14 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_X_MSB           (u16_t) 0x13 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_X_LSB           (u16_t) 0x12 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_STATUS          (u16_t) 0x03 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_ERR_REG         (u16_t) 0x02 | ((u16_t)1 << 8)
-#define BMI088_REG_ACC_CHIP_ID         (u16_t) 0x00 | ((u16_t)1 << 8)
+#define BMI088_MASK_INT_IO_CONF_IN     (u8_t) 0b00010000
+#define BMI088_MASK_INT_IO_CONF_OUT    (u8_t) 0b00001000
+#define BMI088_MASK_INT_IO_CONF_OD     (u8_t) 0b00000100
+#define BMI088_MASK_INT_IO_CONF_LVL    (u8_t) 0b00000010
 
-#define BMI088_MASK_ACC_CONF_BANDWITH  0b11110000
-#define BMI088_MASK_ACC_CONF_ODR       0b00001111
-#define BMI088_MASK_ACC_RANGE          0b00000011
+#define BMI088_MASK_INT_MAP_DATA_INT2_DRDY      (u8_t) 0b01000000
+#define BMI088_MASK_INT_MAP_DATA_INT1_DRDY      (u8_t) 0b01000010
 
-#define BMI088_ACC_CONF_BANDWIDTH_OSR4 0x80
-#define BMI088_ACC_CONF_BANDWIDTH_OSR2 0x90
-#define BMI088_ACC_CONF_BANDWIDTH_OSR1 0xA0
+#define BMI088_ACC_CONF_BANDWIDTH_OSR4 ((u8_t) 0x08 << 4)
+#define BMI088_ACC_CONF_BANDWIDTH_OSR2 ((u8_t) 0x09 << 4)
+#define BMI088_ACC_CONF_BANDWIDTH_OSR1 ((u8_t) 0x0A << 4)
 
-#define BMI088_ACC_CONF_ODR_12_5       0x05
-#define BMI088_ACC_CONF_ODR_25         0x06
-#define BMI088_ACC_CONF_ODR_50         0x07
-#define BMI088_ACC_CONF_ODR_100        0x08
-#define BMI088_ACC_CONF_ODR_200        0x09
-#define BMI088_ACC_CONF_ODR_400        0x0A
-#define BMI088_ACC_CONF_ODR_800        0x0B
-#define BMI088_ACC_CONF_ODR_1600       0x0C
+#define BMI088_ACC_SELF_TEST_OFF       (u8_t) 0x00
+#define BMI088_ACC_SELF_TEST_POS       (u8_t) 0x0D
+#define BMI088_ACC_SELF_TEST_NEG       (u8_t) 0x09
 
-#define BMI088_ACC_RANGE_3             0x00
-#define BMI088_ACC_RANGE_6             0x01
-#define BMI088_ACC_RANGE_12            0x02
-#define BMI088_ACC_RANGE_24            0x03
+#define BMI088_ACC_PWR_CONF_SUSPEND    (u8_t) 0x03
+#define BMI088_ACC_PWR_CONF_ACTIVE     (u8_t) 0x00
+#define BMI088_ACC_PWR_CTRL_ACC_OFF    (u8_t) 0x00
+#define BMI088_ACC_PWR_CTRL_ACC_ON     (u8_t) 0x04
 
-#define BMI088_REG_GYRO_SELF_TEST      (u16_t) 0x3C
-#define BMI088_REG_INT3_INT4_IO_MAP    (u16_t) 0x18
-#define BMI088_REG_INT3_INT4_IO_CONF   (u16_t) 0x16
-#define BMI088_REG_GYRO_INT_CTRL       (u16_t) 0x15
-#define BMI088_REG_GYR0_SOFTRESET      (u16_t) 0x14
-#define BMI088_REG_GYRO_LPM1           (u16_t) 0x11
-#define BMI088_REG_GYRO_BANDWITH       (u16_t) 0x10
-#define BMI088_REG_GYRO_RANGE          (u16_t) 0x0F
-#define BMI088_REG_GYRO_INT_STAT_1     (u16_t) 0x0A
-#define BMI088_REG_RATE_Z_MSB          (u16_t) 0x07
-#define BMI088_REG_RATE_Z_LSB          (u16_t) 0x06
-#define BMI088_REG_RATE_Y_MSB          (u16_t) 0x05
-#define BMI088_REG_RATE_Y_LSB          (u16_t) 0x04
-#define BMI088_REG_RATE_X_MSB          (u16_t) 0x03
-#define BMI088_REG_RATE_X_LSB          (u16_t) 0x02
-#define BMI088_REG_GYRO_CHIP_ID        (u16_t) 0x00
+#define BMI088_ACC_SOFTRESET_RESET     (u8_t) 0xB6
 
+#define BMI088_ACC_CONF_ODR_12_5       (u8_t) 0x05
+#define BMI088_ACC_CONF_ODR_25         (u8_t) 0x06
+#define BMI088_ACC_CONF_ODR_50         (u8_t) 0x07
+#define BMI088_ACC_CONF_ODR_100        (u8_t) 0x08
+#define BMI088_ACC_CONF_ODR_200        (u8_t) 0x09
+#define BMI088_ACC_CONF_ODR_400        (u8_t) 0x0A
+#define BMI088_ACC_CONF_ODR_800        (u8_t) 0x0B
+#define BMI088_ACC_CONF_ODR_1600       (u8_t) 0x0C
 
-#define BMI088_GYRO_RANGE_2000         0x00
-#define BMI088_GYRO_RANGE_1000         0x01
-#define BMI088_GYRO_RANGE_500          0x02
-#define BMI088_GYRO_RANGE_250          0x03
-#define BMI088_GYRO_RANGE_125          0x04
-
-#define BMI088_GYRO_BANDWITH_532       0x00
-#define BMI088_GYRO_BANDWITH_230       0x01
-#define BMI088_GYRO_BANDWITH_116       0x02
-#define BMI088_GYRO_BANDWITH_47        0x03
-#define BMI088_GYRO_BANDWITH_23        0x04
-#define BMI088_GYRO_BANDWITH_12        0x05
-#define BMI088_GYRO_BANDWITH_64        0x06
-#define BMI088_GYRO_BANDWITH_32        0x07
-
-#define BMI088_GYRO_LPM1_NORMAL        0x00
-#define BMI088_GYRO_LPM1_SUSPEND       0x80
-#define BMI088_GYRO_LPM1_DEEP_SUSPEND  0x20
+#define BMI088_ACC_RANGE_3             (u8_t) 0x00
+#define BMI088_ACC_RANGE_6             (u8_t) 0x01
+#define BMI088_ACC_RANGE_12            (u8_t) 0x02
+#define BMI088_ACC_RANGE_24            (u8_t) 0x03
 
 #if defined(CONFIG_BMI088_ACCEL_RANGE_3G)
 #   define BMI088_ACC_DEFAULT_RANGE           BMI088_ACC_CONF_RANGE_3
@@ -136,71 +113,48 @@ opearations are different on accelration registers than on gyro registers */
 #   define BMI088_ACC_DEFAULT_ODR          BMI088_ACCEL_ODR_200
 #endif   
 
-#if defined(CONFIG_BMI088_GYRO_RANGE_2000DPS)
-#   define BMI088_GYRO_DEFAULT_RANGE       BMI088_GYRO_RANGE_2000
-#elif defined(CONFIG_BMI088_GYRO_RANGE_1000DPS)
-#   define BMI088_GYRO_DEFAULT_RANGE       BMI088_GYRO_RANGE_1000
-#elif defined(CONFIG_BMI088_GYRO_RANGE_500DPS)
-#   define BMI088_GYRO_DEFAULT_RANGE       BMI088_GYRO_RANGE_500
-#elif defined(CONFIG_BMI088_GYRO_RANGE_250DPS)
-#   define BMI088_GYRO_DEFAULT_RANGE       BMI088_GYRO_RANGE_250
-#elif defined(CONFIG_BMI088_GYRO_RANGE_125DPS)
-#   define BMI088_GYRO_DEFAULT_RANGE       BMI088_GYRO_RANGE_125
-#else
-#   define BMI088_GYRO_DEFAULT_RANGE       BMI088_GYRO_RANGE_1000
-#endif
 
-#if defined(CONFIG_BMI_GYRO_ODR_2000_BW_532)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_532
-#elif defined(BMI088_GYRO_ODR_2000_BW_230)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_230
-#elif defined(BMI088_GYRO_ODR_2000_BW_116)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_116
-#elif defined(BMI088_GYRO_ODR_2000_BW_47)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_47
-#elif defined(BMI088_GYRO_ODR_2000_BW_23)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_23
-#elif defined(BMI088_GYRO_ODR_2000_BW_64)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_64
-#elif defined(BMI088_GYRO_ODR_2000_BW_32)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_32
-#elif defined(BMI088_GYRO_ODR_2000_BW_12)
-#   define BMI088_GYRO_DEFAULT_BANDWITH    BMI088_GYRO_BANDWITH_12
-#else
-#   define BMI088_GYRO_DEFUALT_BANDWITH    BMI088_GYRO_BANDWITH_230
-#endif
+struct bmi088_acc_data {
+    struct device *bmi088_com_dev;
+    const struct bmi088_transfer_function *tf;
+
+    u8_t acc_odr;
+    u8_t acc_bandwith;
+    u8_t acc_range;
+
+    union {
+        struct {
+            s16_t x_value;
+            s16_t y_value;
+            s16_t z_value;
+        }__attribute__((packed));
+        s16_t array[3];
+    } acc_raw_values;
+
+    union {
+        struct {
+            struct sensor_value x_value;
+            struct sensor_value y_value;
+            struct sensor_value z_value;
+        }__attribute__((packed));
+        struct sensor_value array[3];
+    } acc_values;
+
+    u16_t temp_raw;
+    struct sensor_value temp;
+};
 
 struct bmi088_transfer_function {
-    int (*read_register)(struct bmi088_data *data, u16_t register,
+    int (*read_register)(struct bmi088_data *data, u16_t reg,
                          int count, void *val);
-    int (*write_register)(struct bmi088_data *data, u16_t register,
+    int (*write_register)(struct bmi088_data *data, u16_t reg,
                          int count, void *val);
 };
 
-struct bmi088_config {
+struct bmi088_acc_config {
     char *bmi088_com_dev_name;
 }
 
-union bmi088_values {
-    s16_t x_value;
-    s16_t y_value;
-    s16_t z_value;
-    s16_t array[3];
-};
-
-struct bmi088_data {
-    struct device *bmi088_com_dev;
-    struct bmi088_transfer_function *tf;
-
-    u8_t acc_bandwidth;
-    u8_t acc_odr;
-    u8_t acc_range;
-
-    u8_t gyro_odr;
-    u8_t gyro_range;
-
-    union bmi088_values gyro_values;
-    union bmi088_values acc_values;
-};
+int bmi088_acc_spi_init(struct bmi088_acc_data *data);
 
 #endif
