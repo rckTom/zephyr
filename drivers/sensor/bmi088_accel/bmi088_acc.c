@@ -441,8 +441,8 @@ static const struct sensor_driver_api bmi088_acc_api_funcs = {
 	.channel_get = bmi088_acc_channel_get,
 };
 
-DEVICE_AND_API_INIT(bmi088_gyro,
-		    DT_INST_0_BOSCH_BMI088_GYRO_LABEL,
+DEVICE_AND_API_INIT(bmi088_accel,
+		    DT_INST_0_BOSCH_BMI088_ACCEL_LABEL,
 		    bmi088_acc_init,
 		    &bmi088_acc_data,
 		    &bmi088_acc_config,
