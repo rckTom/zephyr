@@ -8,7 +8,7 @@ LOG_MODULE_REGISTER(bmi088_accel, CONFIG_SENSOR_LOG_LEVEL);
 
 static struct bmi088_acc_data bmi088_acc_data;
 
-static struct bmi088_acc_config bmi088_acc_config = {
+static const struct bmi088_acc_config bmi088_acc_config = {
 	.bmi088_com_dev_name = DT_INST_0_BOSCH_BMI088_ACCEL_BUS_NAME
 };
 
