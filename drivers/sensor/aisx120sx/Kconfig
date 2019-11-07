@@ -1,0 +1,72 @@
+# AISx120SX single or dual channel accleration sensor
+
+# Copyright (c) 2019 Thomas Schmid <tom@lfence.de>
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig AISX120SX
+	bool "AISx120SX single or dual channel acceleration sensor"
+	depends on SPI
+	help
+	  Enable driver for AISx120SC single or dual channel acceleration
+	  sensor.
+
+if AISX120SX
+
+config AISX120SX_DISABLE_OFF_MON_X
+	bool "Disable offset monitoring channel x"
+	help
+	  Disable offset monitoring in x direction.
+
+config AISC120SX_DISABLE_OFF_MON_Y
+	bool "Disable offset monitoring channel y"
+	help
+	  Disable offset monitoring in y direction. This option only has an
+	  effect if the dual channel version of the chip is used
+
+config AISX120SX_DISABLE_OFF_CANC_X
+	bool "Disable offset cancellation channel x"
+	help
+	  Disables offset cancellation in x direction.
+
+config AISX120SX_DISABLE_OFF_CANC_Y
+	bool "Disable offset cancellation channel y"
+	help
+	  Disables offset cancellation in y direction. This option only has an
+	  effect if the dual channel version of the chip is used
+
+
+choice AISX120SX_BW_CHANNEL_X
+	prompt "Bandwidth channel x"
+	help
+	 Cut off frequency of the integrated fir filter.
+
+config AISX120SX_BW_CHANNEL_X_400
+	bool "400 Hz"
+
+config AISX120SX_BW_CHANNEL_X_800
+	bool "800 Hz"
+
+config AISX120SX_BW_CHANNEL_X_1600
+	bool "1600Hz"
+
+endchoice
+
+
+choice AISX120SX_BW_CHANNEL_Y
+	prompt "Bandwidth channel y"
+	help
+	 Cut off frequency of the integrated fir filter. Only has an effect if
+	 the dual channel version of the chip is used.
+
+config AISX120SX_BW_CHANNEL_Y_400
+	bool "400 Hz"
+
+config AISX120SX_BW_CHANNEL_Y_800
+	bool "800 Hz"
+
+config AISX120SX_BW_CHANNEL_Y_1600
+	bool "1600Hz"
+
+endchoice
+
+endif # AISX120SX
