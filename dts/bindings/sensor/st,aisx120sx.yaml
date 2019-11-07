@@ -1,0 +1,9 @@
+# Copyright (c) 2019, Thomas Schmid <tom@lfence.de>
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+    ST Microelectronics acceleration sensor
+
+compatible: "st,aisx120sx"
+
+include: spi-device.yaml
