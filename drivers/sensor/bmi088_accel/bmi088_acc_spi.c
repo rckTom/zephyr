@@ -119,7 +119,7 @@ int bmi088_acc_spi_init(struct bmi088_acc_data *data)
 	}
 
 	bmi088_acc_cs_ctrl.gpio_pin = DT_INST_0_BOSCH_BMI088_ACCEL_CS_GPIOS_PIN;
-	bmi088_acc_cs_ctrl.delay = 1U;
+	bmi088_acc_cs_ctrl.delay = 0U;
 	bmi088_acc_spi_conf.cs = &bmi088_acc_cs_ctrl;
 #endif
 
