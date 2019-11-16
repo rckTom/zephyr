@@ -1,4 +1,5 @@
 #include <logging/log.h>
+#include <zephyr.h>
 #include <drivers/sensor.h>
 #include <sys/byteorder.h>
 #include "bmi088_acc.h"
@@ -189,27 +190,61 @@ static int bmi088_acc_sample_fetch(struct device *dev,
 	return 0;
 }
 
+static int bmi088_acc_reset(struct bmi088_acc_data *data)
+{
+	int res;
+	u8_t reg = BMI088_ACC_SOFTRESET_RESET;
+
+	res = data->tf->write_register(data, BMI088_REG_ACC_SOFTRESET, 1, &reg);
+	if (res != 0) {
+		return res;
+	}
+
+	k_sleep(K_MSEC(30));
+
+	#if defined(DT_BOSCH_BMI088_ACCEL_BUS_SPI)
+	res = data->tf->read_register(data, BMI088_REG_ACC_CHIP_ID, 1, &reg);
+	#endif
+
+	return res;
+}
+
+static int bmi088_acc_read_state(struct bmi088_acc_data *data)
+{
+	int res;
+	u8_t reg;
+
+	res = data->tf->read_register(data, BMI088_REG_ACC_CONF, 1, &reg);
+	if (res != 0) {
+		return res;
+	}
+
+	data->acc_odr = reg & BMI088_MASK_ACC_CONF_ODR;
+	data->acc_bandwidth = reg & BMI088_MASK_ACC_CONF_BANDWIDTH;
+
+	res = data->tf->read_register(data, BMI088_REG_ACC_RANGE, 1, &reg);
+	if (res != 0) {
+		return res;
+	}
+
+	data->acc_range = reg;
+	return 0;
+}
+
 static int bmi088_acc_enable(struct bmi088_acc_data *data)
 {
 	u8_t reg_val = BMI088_ACC_PWR_CONF_ACTIVE;
 	int res = data->tf->write_register(data, BMI088_REG_ACC_PWR_CONF, 1,
 					   &reg_val);
 
-	if (res != 0) {
-		return res;
-	}
-
-	k_sleep(1);
+	k_sleep(K_MSEC(5));
 
 	reg_val = BMI088_ACC_PWR_CTRL_ACC_ON;
 	res = data->tf->write_register(data, BMI088_REG_ACC_PWR_CTRL, 1,
 				       &reg_val);
-	if (res != 0) {
-		return res;
-	}
 
-	k_sleep(5);
-	return 0;
+	k_sleep(K_MSEC(50));
+	return res;
 }
 
 /*
@@ -232,6 +267,7 @@ static int bmi088_self_test(struct device *dev)
 	if (res != 0) {
 		return res;
 	}
+
 	data->acc_odr =  BMI088_ACC_CONF_ODR_1600;
 	data->acc_bandwidth = BMI088_ACC_CONF_BANDWIDTH_OSR4;
 	data->acc_range = BMI088_ACC_RANGE_24;
@@ -241,24 +277,31 @@ static int bmi088_self_test(struct device *dev)
 	if (res != 0) {
 		return res;
 	}
-	k_sleep(3);
 
 	reg_val = BMI088_ACC_SELF_TEST_POS;
 	res = tf->write_register(data, BMI088_REG_ACC_SELF_TEST, 1, &reg_val);
 	if (res != 0) {
 		return res;
 	}
-	k_sleep(51);
+
+	k_sleep(K_MSEC(60));
 
 	bmi088_acc_sample_fetch(dev, SENSOR_CHAN_ACCEL_XYZ);
 	memcpy(val_p, data->acc_values.array, sizeof(val_p));
+
+	reg_val = BMI088_ACC_SELF_TEST_OFF;
+	res = tf->write_register(data, BMI088_REG_ACC_SELF_TEST, 1, &reg_val);
+	if (res != 0) {
+		return res;
+	}
 
 	reg_val = BMI088_ACC_SELF_TEST_NEG;
 	res = tf->write_register(data, BMI088_REG_ACC_SELF_TEST, 1, &reg_val);
 	if (res != 0) {
 		return res;
 	}
-	k_sleep(51);
+
+	k_sleep(K_MSEC(60));
 
 	bmi088_acc_sample_fetch(dev, SENSOR_CHAN_ACCEL_XYZ);
 	memcpy(val_n, data->acc_values.array, sizeof(val_n));
@@ -269,20 +312,40 @@ static int bmi088_self_test(struct device *dev)
 		return res;
 	}
 
-	reg_val = BMI088_ACC_SOFTRESET_RESET;
-	res = tf->write_register(data, BMI088_REG_ACC_SOFTRESET, 1, &reg_val);
+	res = bmi088_acc_reset(data);
 	if (res != 0) {
-		return res;
+		goto fail;
 	}
-
-	if (reg_val != 0x1E) {
-		return -EINVAL;
-	}
-
-	k_sleep(1);
 
 	res = bmi088_acc_enable(data);
+	if (res != 0) {
+		goto fail;
+	}
+
+	res = bmi088_acc_read_state(data);
+	if (res != 0) {
+		goto fail;
+	}
+
+	for (int i = 0; i < 3; i++) {
+		int diff = (val_p[i].val1 - val_n[i].val1)*1000 +
+			   (val_p[i].val2 - val_n[i].val2);
+		if (i == 2) {
+			if (diff < 500) {
+				goto fail;
+			}
+		} else {
+			if (diff < 1000) {
+				goto fail;
+			}
+		}
+	}
+
 	return res;
+
+fail:
+	LOG_ERR("self test failed");
+	return -1;
 }
 
 
@@ -325,10 +388,10 @@ static int bmi088_acc_attr_set(struct device *dev,
 			data->acc_bandwidth = BMI088_ACC_CONF_BANDWIDTH_OSR1;
 			break;
 		case 2:
-			data->acc_bandwidth = BMI088_ACC_CONF_BANDWIDTH_OSR1;
+			data->acc_bandwidth = BMI088_ACC_CONF_BANDWIDTH_OSR2;
 			break;
 		case 4:
-			data->acc_bandwidth = BMI088_ACC_CONF_BANDWIDTH_OSR1;
+			data->acc_bandwidth = BMI088_ACC_CONF_BANDWIDTH_OSR4;
 			break;
 		default:
 			return -EINVAL;
@@ -382,10 +445,10 @@ static int bmi088_acc_channel_get(struct device *dev, enum sensor_channel chan,
 		*val = data->acc_values.x_value;
 		break;
 	case SENSOR_CHAN_ACCEL_Y:
-		*val = data->acc_values.x_value;
+		*val = data->acc_values.y_value;
 		break;
 	case SENSOR_CHAN_ACCEL_Z:
-		*val = data->acc_values.x_value;
+		*val = data->acc_values.z_value;
 		break;
 	case SENSOR_CHAN_DIE_TEMP:
 		*val = data->temp;
@@ -411,22 +474,33 @@ static int bmi088_acc_init(struct device *dev)
 
 	memset(data->acc_values.array, 0, ARRAY_SIZE(data->acc_values.array));
 
-	data->acc_odr =         BMI088_ACC_DEFAULT_ODR;
-	data->acc_range =       BMI088_ACC_DEFAULT_RANGE;
-	data->acc_bandwidth =   BMI088_ACC_DEFAULT_BANDWIDTH;
+	data->acc_odr = BMI088_ACC_DEFAULT_ODR;
+	data->acc_range = BMI088_ACC_DEFAULT_RANGE;
+	data->acc_bandwidth = BMI088_ACC_DEFAULT_BANDWIDTH;
 
 #if defined(DT_BOSCH_BMI088_ACCEL_BUS_SPI)
 	bmi088_acc_spi_init(data);
 #else
 	bmi088_i2c_init(data);
 #endif
-
-	res = bmi088_acc_enable(data);
+	/* Make sure device is in reset state */
+	res = bmi088_acc_reset(data);
 	if (res != 0) {
 		return res;
 	}
 
 	res = data->tf->read_register(data, BMI088_REG_ACC_CHIP_ID, 1, &reg);
+	LOG_DBG("chip id: %d", reg);
+	if (res != 0) {
+		return res;
+	}
+
+	if (reg != 0x1E) {
+		LOG_ERR("chip id is incorrect");
+		return -EINVAL;
+	}
+
+	res = bmi088_acc_enable(data);
 	if (res != 0) {
 		return res;
 	}
