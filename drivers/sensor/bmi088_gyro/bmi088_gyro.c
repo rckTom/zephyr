@@ -126,15 +126,6 @@ static int bmi088_gyr_sample_fetch(struct device *dev,
 	}
 
 	bmi088_samples_convert(data, channel);
-
-	char msg[64] = { 0 };
-
-	snprintf(msg, sizeof(msg), "sensor values %f %f %f\n",
-		 sensor_value_to_double(&data->gyro_values.x_value),
-		 sensor_value_to_double(&data->gyro_values.y_value),
-		 sensor_value_to_double(&data->gyro_values.z_value));
-
-	printk("%s", msg);
 	return 0;
 }
 
