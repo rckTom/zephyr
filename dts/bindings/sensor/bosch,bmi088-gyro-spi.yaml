@@ -1,10 +1,8 @@
 # Copyright (c) 2018, Linaro Limited
 # SPDX-License-Identifier: Apache-2.0
 
-title: BMI088 Inertial measurement unit
-
-description: >
-    This is a representation of the BMI088 gyro sensor
+description: |
+    Gyro sensor of the Bosch BMI088 inertial measurement unit
 
 compatible: "bosch,bmi088-gyro"
 
