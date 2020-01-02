@@ -289,12 +289,6 @@ static int bmi088_self_test(struct device *dev)
 	bmi088_acc_sample_fetch(dev, SENSOR_CHAN_ACCEL_XYZ);
 	memcpy(val_p, data->acc_values.array, sizeof(val_p));
 
-	reg_val = BMI088_ACC_SELF_TEST_OFF;
-	res = tf->write_register(data, BMI088_REG_ACC_SELF_TEST, 1, &reg_val);
-	if (res != 0) {
-		return res;
-	}
-
 	reg_val = BMI088_ACC_SELF_TEST_NEG;
 	res = tf->write_register(data, BMI088_REG_ACC_SELF_TEST, 1, &reg_val);
 	if (res != 0) {
@@ -309,33 +303,49 @@ static int bmi088_self_test(struct device *dev)
 	reg_val = BMI088_ACC_SELF_TEST_OFF;
 	res = tf->write_register(data, BMI088_REG_ACC_SELF_TEST, 1, &reg_val);
 	if (res != 0) {
-		return res;
+		LOG_DBG("unable to write register self_test");
+		goto fail;
 	}
 
 	res = bmi088_acc_reset(data);
 	if (res != 0) {
+		LOG_DBG("unable to reset");
 		goto fail;
 	}
 
 	res = bmi088_acc_enable(data);
 	if (res != 0) {
+		LOG_DBG("unable to enable sensor");
 		goto fail;
 	}
 
 	res = bmi088_acc_read_state(data);
 	if (res != 0) {
+		LOG_DBG("unable to read config");
 		goto fail;
 	}
 
+	LOG_DBG("val_p x: %d.%06d", val_p[0].val1, val_p[0].val2);
+	LOG_DBG("val_p y: %d.%06d", val_p[1].val1, val_p[1].val2);
+	LOG_DBG("val_p z: %d.%06d", val_p[2].val1, val_p[2].val2);
+	LOG_DBG("val_n x: %d.%06d", val_n[0].val1, val_n[0].val2);
+	LOG_DBG("val_n y: %d.%06d", val_n[1].val1, val_n[1].val2);
+	LOG_DBG("val_n z: %d.%06d", val_n[2].val1, val_n[2].val2);
+	return res;
 	for (int i = 0; i < 3; i++) {
-		int diff = (val_p[i].val1 - val_n[i].val1)*1000 +
-			   (val_p[i].val2 - val_n[i].val2);
+		int p = (val_p[i].val1 * 1000 + val_p[i].val2/1000);
+		int n = (val_n[i].val1 * 1000 + val_n[i].val2/1000);
+		int diff = p+n;
 		if (i == 2) {
 			if (diff < 500) {
+				LOG_DBG("difference to small on axis %d: %d",
+					i, diff);
 				goto fail;
 			}
 		} else {
 			if (diff < 1000) {
+				LOG_DBG("difference to small on axis %d: %d",
+					i, diff);
 				goto fail;
 			}
 		}
