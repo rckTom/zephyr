@@ -218,6 +218,11 @@ static int bmi088_gyr_channel_get(struct device *dev, enum sensor_channel chan,
 	case SENSOR_CHAN_GYRO_Z:
 		*val = data->gyro_values.z_value;
 		return 0;
+	case SENSOR_CHAN_GYRO_XYZ:
+		val[0] = data->gyro_values.x_value;
+		val[1] = data->gyro_values.y_value;
+		val[2] = data->gyro_values.z_value;
+		return 0;
 	default:
 		return -EINVAL;
 	}
