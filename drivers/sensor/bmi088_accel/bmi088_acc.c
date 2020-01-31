@@ -460,6 +460,11 @@ static int bmi088_acc_channel_get(struct device *dev, enum sensor_channel chan,
 	case SENSOR_CHAN_ACCEL_Z:
 		*val = data->acc_values.z_value;
 		break;
+	case SENSOR_CHAN_ACCEL_XYZ:
+		val[0] = data->acc_values.x_value;
+		val[1] = data->acc_values.y_value;
+		val[2] = data->acc_values.z_value;
+		break;
 	case SENSOR_CHAN_DIE_TEMP:
 		*val = data->temp;
 		break;
