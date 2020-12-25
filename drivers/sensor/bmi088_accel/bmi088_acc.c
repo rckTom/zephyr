@@ -13,21 +13,21 @@ static const struct bmi088_acc_config bmi088_acc_config = {
 	.bmi088_com_dev_name = DT_INST_0_BOSCH_BMI088_ACCEL_BUS_NAME
 };
 
-static void conv_single_sample(float lsb, s16_t raw,
+static void conv_single_sample(float lsb, int16_t raw,
 			       struct sensor_value *val)
 {
 	float fval = (float) raw * lsb;
 	float it;
 	float fr = modff(fval, &it);
 
-	val->val1 = (s32_t)it;
-	val->val2 = (s32_t)(fr * 1000000);
+	val->val1 = (int32_t)it;
+	val->val2 = (int32_t)(fr * 1000000);
 }
 
 static void bmi088_temp_sample_convert(struct bmi088_acc_data *data,
 				       enum sensor_channel channel)
 {
-	s16_t temp;
+	int16_t temp;
 	float lsb = 0.125;
 
 	data->temp_raw = sys_le16_to_cpu(data->temp_raw);
@@ -144,7 +144,7 @@ static int bmi088_acc_sample_fetch(struct device *dev,
 {
 	struct bmi088_acc_data *data = dev->driver_data;
 	void *data_start;
-	u8_t start_reg;
+	uint8_t start_reg;
 	int count;
 	int res;
 
@@ -193,7 +193,7 @@ static int bmi088_acc_sample_fetch(struct device *dev,
 static int bmi088_acc_reset(struct bmi088_acc_data *data)
 {
 	int res;
-	u8_t reg = BMI088_ACC_SOFTRESET_RESET;
+	uint8_t reg = BMI088_ACC_SOFTRESET_RESET;
 
 	res = data->tf->write_register(data, BMI088_REG_ACC_SOFTRESET, 1, &reg);
 	if (res != 0) {
@@ -212,7 +212,7 @@ static int bmi088_acc_reset(struct bmi088_acc_data *data)
 static int bmi088_acc_read_state(struct bmi088_acc_data *data)
 {
 	int res;
-	u8_t reg;
+	uint8_t reg;
 
 	res = data->tf->read_register(data, BMI088_REG_ACC_CONF, 1, &reg);
 	if (res != 0) {
@@ -233,7 +233,7 @@ static int bmi088_acc_read_state(struct bmi088_acc_data *data)
 
 static int bmi088_acc_enable(struct bmi088_acc_data *data)
 {
-	u8_t reg_val = BMI088_ACC_PWR_CONF_ACTIVE;
+	uint8_t reg_val = BMI088_ACC_PWR_CONF_ACTIVE;
 	int res = data->tf->write_register(data, BMI088_REG_ACC_PWR_CONF, 1,
 					   &reg_val);
 
@@ -259,7 +259,7 @@ static int bmi088_self_test(struct device *dev)
 	const struct bmi088_transfer_function *tf = data->tf;
 	struct sensor_value val_p[3];
 	struct sensor_value val_n[3];
-	u8_t reg_val = 0;
+	uint8_t reg_val = 0;
 	int res;
 
 	reg_val = BMI088_ACC_RANGE_24;
@@ -365,8 +365,8 @@ static int bmi088_acc_attr_set(struct device *dev,
 			       const struct sensor_value *val)
 {
 	struct bmi088_acc_data *data = dev->driver_data;
-	u8_t reg;
-	u8_t reg_val = 0;
+	uint8_t reg;
+	uint8_t reg_val = 0;
 
 	if (chan != SENSOR_CHAN_ALL) {
 		return -EINVAL;
@@ -479,7 +479,7 @@ static int bmi088_acc_init(struct device *dev)
 	struct bmi088_acc_data *data = dev->driver_data;
 	const struct bmi088_acc_config *config = dev->config->config_info;
 	int res;
-	u8_t reg;
+	uint8_t reg;
 
 	data->bmi088_com_dev = device_get_binding(config->bmi088_com_dev_name);
 	if (!data->bmi088_com_dev) {
