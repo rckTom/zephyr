@@ -1,3 +1,5 @@
+#define DT_DRV_COMPAT bosch_bmi088_accel
+
 #include <logging/log.h>
 #include <zephyr.h>
 #include <drivers/sensor.h>
@@ -10,7 +12,7 @@ LOG_MODULE_REGISTER(bmi088_accel, CONFIG_SENSOR_LOG_LEVEL);
 static struct bmi088_acc_data bmi088_acc_data;
 
 static const struct bmi088_acc_config bmi088_acc_config = {
-	.bmi088_com_dev_name = DT_INST_0_BOSCH_BMI088_ACCEL_BUS_NAME
+	.bmi088_com_dev_name = DT_INST_BUS_LABEL(0)
 };
 
 static void conv_single_sample(float lsb, int16_t raw,
@@ -202,7 +204,7 @@ static int bmi088_acc_reset(struct bmi088_acc_data *data)
 
 	k_sleep(K_MSEC(30));
 
-	#if defined(DT_BOSCH_BMI088_ACCEL_BUS_SPI)
+	#if DT_ON_BUS(DT_INST_LABEL(0), spi)
 	res = data->tf->read_register(data, BMI088_REG_ACC_CHIP_ID, 1, &reg);
 	#endif
 
@@ -530,12 +532,11 @@ static const struct sensor_driver_api bmi088_acc_api_funcs = {
 	.channel_get = bmi088_acc_channel_get,
 };
 
-DEVICE_AND_API_INIT(bmi088_accel,
-		    DT_INST_0_BOSCH_BMI088_ACCEL_LABEL,
-		    bmi088_acc_init,
-		    &bmi088_acc_data,
-		    &bmi088_acc_config,
-		    POST_KERNEL,
-		    CONFIG_SENSOR_INIT_PRIORITY,
-		    &bmi088_acc_api_funcs);
+DEVICE_DT_INST_DEFINE(0, bmi088_acc_init,
+		      device_pm_control_nop,
+		      &bmi088_acc_data,
+		      &bmi088_acc_config,
+		      POST_KERNEL,
+		      CONFIG_SENSOR_INIT_PRIORITY,
+		      &bmi088_acc_api_funcs);
 
