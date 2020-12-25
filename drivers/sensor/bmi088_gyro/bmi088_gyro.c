@@ -1,3 +1,5 @@
+#define DT_DRV_COMPAT bosch_bmi088_gyro
+
 #include <logging/log.h>
 #include <drivers/sensor.h>
 #include <sys/byteorder.h>
@@ -8,7 +10,7 @@
 LOG_MODULE_REGISTER(bmi088_gyro, CONFIG_SENSOR_LOG_LEVEL);
 
 static const struct bmi088_gyr_config bmi088_gyr_config = {
-	.bmi088_com_dev_name = DT_INST_0_BOSCH_BMI088_GYRO_BUS_NAME,
+	.bmi088_com_dev_name = DT_INST_BUS_LABEL(0),
 };
 
 static struct bmi088_gyr_data bmi088_gyr_data;
@@ -244,7 +246,7 @@ static int bmi088_gyr_init(struct device *dev)
 	data->gyro_odr =        BMI088_GYRO_DEFAULT_BANDWIDTH;
 	data->gyro_range =      BMI088_GYRO_DEFAULT_RANGE;
 
-#ifdef DT_BOSCH_BMI088_GYRO_BUS_SPI
+#ifdef DT_ON_BUS(DT_INST_LABEL(0), spi)
 	bmi088_gyr_spi_init(data);
 #else
 	bmi088_gyr_i2c_init(data);
@@ -312,11 +314,10 @@ static const struct sensor_driver_api bmi088_gyr_api_funcs = {
 	.channel_get = bmi088_gyr_channel_get,
 };
 
-DEVICE_AND_API_INIT(bmi088_gyro,
-		    DT_INST_0_BOSCH_BMI088_GYRO_LABEL,
-		    bmi088_gyr_init,
-		    &bmi088_gyr_data,
-		    &bmi088_gyr_config,
-		    POST_KERNEL,
-		    CONFIG_SENSOR_INIT_PRIORITY,
-		    &bmi088_gyr_api_funcs);
+DEVICE_DT_INST_DEFINE(0, bmi088_gyr_init,
+		      device_pm_control_nop
+		      &bmi088_gyr_data,
+		      &bmi088_gyr_config,
+		      POST_KERNEL,
+		      CONFIG_SENSOR_INIT_PRIORITY,
+		      &bmi088_gyr_api_funcs);
