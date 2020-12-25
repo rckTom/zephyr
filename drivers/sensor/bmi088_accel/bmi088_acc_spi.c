@@ -1,3 +1,6 @@
+
+#define DT_DRV_COMPAT bosch_bmi088_accel
+
 #include "bmi088_acc.h"
 #include <drivers/spi.h>
 #include <logging/log.h>
@@ -6,17 +9,17 @@
 LOG_MODULE_DECLARE(bmi088_accel);
 
 #define SPI_CS NULL
-#if defined(DT_INST_0_BOSCH_BMI088_ACCEL_CS_GPIOS_CONTROLLER)
+#if DT_INST_SPI_DEV_HAS_CS_GPIOS(0)
 static struct spi_cs_control bmi088_acc_cs_ctrl;
 #endif
 
 static struct spi_config bmi088_acc_spi_conf = {
-	.frequency = DT_INST_0_BOSCH_BMI088_ACCEL_SPI_MAX_FREQUENCY,
+	.frequency = DT_INST_PROP(0, spi_max_frequency),
 	.operation = (SPI_OP_MODE_MASTER | SPI_WORD_SET(8) |
 		      SPI_MODE_CPOL | SPI_MODE_CPHA |
 		      SPI_TRANSFER_MSB |
 		      SPI_LINES_SINGLE),
-	.slave = DT_INST_0_BOSCH_BMI088_ACCEL_BASE_ADDRESS,
+	.slave = DT_INST_REG_ADDR(0),
 	.cs = SPI_CS,
 };
 
@@ -108,9 +111,9 @@ int bmi088_acc_spi_init(struct bmi088_acc_data *data)
 {
 	data->tf = &bmi088_acc_spi_tf;
 
-#if defined(DT_INST_0_BOSCH_BMI088_ACCEL_CS_GPIOS_CONTROLLER)
+#if DT_INST_SPI_DEV_HAS_CS_GPIOS(0)
 	bmi088_acc_cs_ctrl.gpio_dev = device_get_binding(
-		DT_INST_0_BOSCH_BMI088_ACCEL_CS_GPIOS_CONTROLLER
+		DT_INST_SPI_DEV_CS_GPIOS_LABEL(0)
 		);
 
 	if (!bmi088_acc_cs_ctrl.gpio_dev) {
@@ -118,8 +121,9 @@ int bmi088_acc_spi_init(struct bmi088_acc_data *data)
 		return -ENODEV;
 	}
 
-	bmi088_acc_cs_ctrl.gpio_pin = DT_INST_0_BOSCH_BMI088_ACCEL_CS_GPIOS_PIN;
+	bmi088_acc_cs_ctrl.gpio_pin = DT_INST_SPI_DEV_CS_GPIOS_PIN(0);
 	bmi088_acc_cs_ctrl.delay = 0U;
+	bmi088_acc_cs_ctrl.gpio_dt_flags = DT_INST_SPI_DEV_CS_GPIOS_FLAGS(0);
 	bmi088_acc_spi_conf.cs = &bmi088_acc_cs_ctrl;
 #endif
 
