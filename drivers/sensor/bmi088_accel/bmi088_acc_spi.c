@@ -20,7 +20,7 @@ static struct spi_config bmi088_acc_spi_conf = {
 	.cs = SPI_CS,
 };
 
-int read_register(struct bmi088_acc_data *data, u16_t reg, int count, void *val)
+int read_register(struct bmi088_acc_data *data, uint16_t reg, int count, void *val)
 {
 	int res;
 	struct spi_buf_set rx_buf_set;
@@ -57,7 +57,7 @@ int read_register(struct bmi088_acc_data *data, u16_t reg, int count, void *val)
 	return 0;
 }
 
-int write_register(struct bmi088_acc_data *data, u16_t reg, int count,
+int write_register(struct bmi088_acc_data *data, uint16_t reg, int count,
 		   void *val)
 {
 	int res;
@@ -124,8 +124,8 @@ int bmi088_acc_spi_init(struct bmi088_acc_data *data)
 #endif
 
 	/* performe a dummy id read to set the device to spi mode */
-	u8_t reg =  BMI088_REG_ACC_CHIP_ID;
-	u8_t reg_val;
+	uint8_t reg =  BMI088_REG_ACC_CHIP_ID;
+	uint8_t reg_val;
 
 	int res = data->tf->read_register(data, reg, 1, &reg_val);
 

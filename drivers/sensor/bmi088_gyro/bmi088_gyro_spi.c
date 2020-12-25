@@ -19,7 +19,7 @@ static struct spi_config bmi088_gyr_spi_conf = {
 	.cs = SPI_CS,
 };
 
-int static read_register(struct bmi088_gyr_data *data, u16_t reg, int count, void *val)
+int static read_register(struct bmi088_gyr_data *data, uint16_t reg, int count, void *val)
 {
 	int res;
 	struct spi_buf_set rx_buf_set;
@@ -56,7 +56,7 @@ int static read_register(struct bmi088_gyr_data *data, u16_t reg, int count, voi
 	return 0;
 }
 
-int static write_register(struct bmi088_gyr_data *data, u16_t reg, int count,
+int static write_register(struct bmi088_gyr_data *data, uint16_t reg, int count,
 			  void *val)
 {
 	int res;

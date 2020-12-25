@@ -119,17 +119,17 @@ struct bmi088_acc_data {
 	struct device *bmi088_com_dev;
 	const struct bmi088_transfer_function *tf;
 
-	u8_t acc_odr;
-	u8_t acc_bandwidth;
-	u8_t acc_range;
+	uint8_t acc_odr;
+	uint8_t acc_bandwidth;
+	uint8_t acc_range;
 
 	union {
 		struct {
-			s16_t x_value;
-			s16_t y_value;
-			s16_t z_value;
+			int16_t x_value;
+			int16_t y_value;
+			int16_t z_value;
 		} __packed;
-		s16_t array[3];
+		int16_t array[3];
 	} acc_raw_values;
 
 	union {
@@ -141,14 +141,14 @@ struct bmi088_acc_data {
 		struct sensor_value array[3];
 	} acc_values;
 
-	u16_t temp_raw;
+	uint16_t temp_raw;
 	struct sensor_value temp;
 };
 
 struct bmi088_transfer_function {
-	int (*read_register)(struct bmi088_acc_data *data, u16_t reg,
+	int (*read_register)(struct bmi088_acc_data *data, uint16_t reg,
 			     int count, void *val);
-	int (*write_register)(struct bmi088_acc_data *data, u16_t reg,
+	int (*write_register)(struct bmi088_acc_data *data, uint16_t reg,
 			      int count, void *val);
 };
 

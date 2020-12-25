@@ -13,15 +13,15 @@ static const struct bmi088_gyr_config bmi088_gyr_config = {
 
 static struct bmi088_gyr_data bmi088_gyr_data;
 
-static void conv_single_sample(float lsb, s16_t raw,
+static void conv_single_sample(float lsb, int16_t raw,
 			       struct sensor_value *val)
 {
 	float fval = (float) raw * lsb;
 	float it;
 	float fr = modff(fval, &it);
 
-	val->val1 = (s32_t)it;
-	val->val2 = (s32_t)(fr * 1000000);
+	val->val1 = (int32_t)it;
+	val->val2 = (int32_t)(fr * 1000000);
 }
 
 static void bmi088_samples_convert(struct bmi088_gyr_data *data,
@@ -86,7 +86,7 @@ static int bmi088_gyr_sample_fetch(struct device *dev,
 {
 	struct bmi088_gyr_data *data = dev->driver_data;
 	void *data_start;
-	u8_t start_reg;
+	uint8_t start_reg;
 	int count;
 	int res;
 
@@ -134,8 +134,8 @@ static int bmi088_gyr_attr_set(struct device *dev, enum sensor_channel chan,
 			       const struct sensor_value *val)
 {
 	struct bmi088_gyr_data *data = dev->driver_data;
-	u8_t reg;
-	u8_t reg_val;
+	uint8_t reg;
+	uint8_t reg_val;
 
 	if (chan !=  SENSOR_CHAN_ALL) {
 		return -EINVAL;
@@ -251,7 +251,7 @@ static int bmi088_gyr_init(struct device *dev)
 #endif
 
 	int res;
-	u8_t chip_id;
+	uint8_t chip_id;
 
 	/* Get chip id */
 	res = data->tf->read_register(data, BMI088_REG_GYRO_CHIP_ID, 1,
@@ -266,7 +266,7 @@ static int bmi088_gyr_init(struct device *dev)
 	LOG_INF("Chip id #%X", chip_id);
 
 	/* Perform self test */
-	u8_t gyro_self_test_val = BMI088_MASK_GYRO_SELF_TEST_TRIG_BIST;
+	uint8_t gyro_self_test_val = BMI088_MASK_GYRO_SELF_TEST_TRIG_BIST;
 
 	res =  data->tf->write_register(data, BMI088_REG_GYRO_SELF_TEST,
 					1, &gyro_self_test_val);
@@ -286,7 +286,7 @@ static int bmi088_gyr_init(struct device *dev)
 		gyro_self_test_val & BMI088_MASK_GYRO_SELF_TEST_BIST_FAIL);
 
 	/* Set default configuration */
-	u8_t reg_val = BMI088_GYRO_DEFAULT_BANDWIDTH;
+	uint8_t reg_val = BMI088_GYRO_DEFAULT_BANDWIDTH;
 
 	res = data->tf->write_register(data, BMI088_REG_GYRO_BANDWIDTH, 1,
 				       &reg_val);
