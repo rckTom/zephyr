@@ -133,63 +133,63 @@
 
 union aisx120sx_reg_status_0 {
 	struct {
-		u8_t RST_ACTIVE : 1;
-		u8_t END_OF_PWRUP : 1;
-		u8_t LOSS_CAP : 1;
-		u8_t RESERVED : 1;
-		u8_t REG_CTRL_0_WR_ERR : 1;
-		u8_t TESTMODE_ENABLED : 1;
-		u8_t STATUS : 2;
+		uint8_t RST_ACTIVE : 1;
+		uint8_t END_OF_PWRUP : 1;
+		uint8_t LOSS_CAP : 1;
+		uint8_t RESERVED : 1;
+		uint8_t REG_CTRL_0_WR_ERR : 1;
+		uint8_t TESTMODE_ENABLED : 1;
+		uint8_t STATUS : 2;
 	} __packed fields;
-	u8_t reg;
+	uint8_t reg;
 };
 
 union aisx120sx_reg_status_1 {
 	struct {
-		u8_t REG_CTRL_1_WR_ERR : 1;
-		u8_t REG_CONFIG_WR_ERR : 1;
-		u8_t OFF_CANC_CHX_ERR : 1;
-		u8_t OFF_CANC_CHY_ERR : 1;
-		u8_t NOT_USED : 2;
-		u8_t EEPROM_ERR : 1;
-		u8_t SPI_ERR : 1;
+		uint8_t REG_CTRL_1_WR_ERR : 1;
+		uint8_t REG_CONFIG_WR_ERR : 1;
+		uint8_t OFF_CANC_CHX_ERR : 1;
+		uint8_t OFF_CANC_CHY_ERR : 1;
+		uint8_t NOT_USED : 2;
+		uint8_t EEPROM_ERR : 1;
+		uint8_t SPI_ERR : 1;
 	} __packed fields;
-	u8_t reg;
+	uint8_t reg;
 };
 
 
 union aisx120sx_reg_status_2 {
 	struct {
-		u8_t VDD_HIGH_VOLT_DET : 1;
-		u8_t VDD_LOW_VOLT_DET : 1;
-		u8_t VREG_HIGH_VOLT_DET : 1;
-		u8_t VREG_LOW_VOLT_DET : 1;
-		u8_t CHARGE_PUMP_ERR : 1;
-		u8_t NOT_USED : 1;
-		u8_t A2D_SAT_CHX : 1;
-		u8_t A2D_SAT_CHY : 1;
+		uint8_t VDD_HIGH_VOLT_DET : 1;
+		uint8_t VDD_LOW_VOLT_DET : 1;
+		uint8_t VREG_HIGH_VOLT_DET : 1;
+		uint8_t VREG_LOW_VOLT_DET : 1;
+		uint8_t CHARGE_PUMP_ERR : 1;
+		uint8_t NOT_USED : 1;
+		uint8_t A2D_SAT_CHX : 1;
+		uint8_t A2D_SAT_CHY : 1;
 	} __packed fields;
-	u8_t reg;
+	uint8_t reg;
 };
 
 union aisx120sx_reg_config {
 	struct {
-		u8_t DIS_OFF_CANC_CHX : 1;
-		u8_t DIS_OFF_CANC_CHY : 1;
-		u8_t DIS_OFF_MON_CHX : 1;
-		u8_t DIS_OFF_MON_CHY : 1;
-		u8_t FIR_BW_SEL_CHX : 2;
-		u8_t FIR_BW_SEL_CHY : 2;
+		uint8_t DIS_OFF_CANC_CHX : 1;
+		uint8_t DIS_OFF_CANC_CHY : 1;
+		uint8_t DIS_OFF_MON_CHX : 1;
+		uint8_t DIS_OFF_MON_CHY : 1;
+		uint8_t FIR_BW_SEL_CHX : 2;
+		uint8_t FIR_BW_SEL_CHY : 2;
 	} __packed fields;
-	u8_t reg;
+	uint8_t reg;
 };
 
 union aisx120sx_reg_ctrl_1 {
 	struct {
-		u8_t SELF_TEST_CMD : 2;
-		u8_t RESERVED : 6;
+		uint8_t SELF_TEST_CMD : 2;
+		uint8_t RESERVED : 6;
 	} __packed fields;
-	u8_t reg;
+	uint8_t reg;
 };
 
 enum AISX120SX_SENSOR_ATTR {
@@ -203,7 +203,7 @@ enum AISX120SX_SENSOR_ATTR {
 struct aisx120sx_data {
 	struct device *spi_dev;
 	bool is_dual_channel;
-	s16_t acc_x, acc_y;
+	int16_t acc_x, acc_y;
 };
 
 struct aisx120sx_config {

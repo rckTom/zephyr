@@ -61,59 +61,59 @@ enum aisx120sx_acc_status_flags {
 
 union none_acc_req_data {
 	struct {
-		u8_t crc : 8;
-		u8_t reserved_1 : 5;
+		uint8_t crc : 8;
+		uint8_t reserved_1 : 5;
 		u16_t write_data : 8;
 		u16_t addr : 5;
-		u8_t reserved_0 : 2;
-		u8_t odd_parity : 1;
-		u8_t sen : 1;
-		u8_t op_code : 2;
+		uint8_t reserved_0 : 2;
+		uint8_t odd_parity : 1;
+		uint8_t sen : 1;
+		uint8_t op_code : 2;
 	} __packed fields;
-	u32_t data_word;
-	u8_t data_buf[4];
+	uint32_t data_word;
+	uint8_t data_buf[4];
 };
 
 union none_acc_response {
 	struct {
-		u8_t crc : 8;
-		u8_t status_flags : 4;
-		u8_t reserved_1 : 1;
+		uint8_t crc : 8;
+		uint8_t status_flags : 4;
+		uint8_t reserved_1 : 1;
 		u16_t read_data : 8;
 		u16_t addr : 5;
-		u8_t reserved_0 : 2;
-		u8_t odd_parity : 1;
-		u8_t op_code : 2;
-		u8_t sen : 1;
+		uint8_t reserved_0 : 2;
+		uint8_t odd_parity : 1;
+		uint8_t op_code : 2;
+		uint8_t sen : 1;
 	} __packed fields;
-	u32_t data_word;
-	u8_t data_buf[4];
+	uint32_t data_word;
+	uint8_t data_buf[4];
 };
 
 union acc_req_data {
 	struct {
-		u8_t crc : 8;
-		u32_t zero : 20;
-		u8_t odd_parity : 1;
-		u8_t sen : 1;
-		u8_t channel_select : 2;
+		uint8_t crc : 8;
+		uint32_t zero : 20;
+		uint8_t odd_parity : 1;
+		uint8_t sen : 1;
+		uint8_t channel_select : 2;
 	} __packed fields;
-	u32_t data_word;
-	u8_t data_buf[4];
+	uint32_t data_word;
+	uint8_t data_buf[4];
 };
 
 union acc_response {
 	struct {
-		u8_t crc : 8;
+		uint8_t crc : 8;
 		enum aisx120sx_acc_status_flags status_flags : 4;
 		u16_t data : 14;
-		u8_t status : 2;
-		u8_t odd_parity : 1;
-		u8_t channel_select : 2;
-		u8_t sen : 1;
+		uint8_t status : 2;
+		uint8_t odd_parity : 1;
+		uint8_t channel_select : 2;
+		uint8_t sen : 1;
 	} __packed fields;
-	u32_t data_word;
-	u8_t data_buf[4];
+	uint32_t data_word;
+	uint8_t data_buf[4];
 };
 
 static const struct aisx120sx_config aisx120sx_config = {
@@ -133,12 +133,12 @@ static struct spi_config aisx120sx_spi_conf = {
 static struct spi_cs_control aisx120sx_cs_ctrl;
 #endif
 
-static u8_t crc_table[16];
+static uint8_t crc_table[16];
 
-static void make_crc_table(u8_t poly)
+static void make_crc_table(uint8_t poly)
 {
-	for (u8_t val = 0; val <= 0xF; val++) {
-		u8_t res =  0;
+	for (uint8_t val = 0; val <= 0xF; val++) {
+		uint8_t res =  0;
 
 		res ^= val;
 
@@ -154,10 +154,10 @@ static void make_crc_table(u8_t poly)
 	}
 }
 
-static u8_t crc8_caicheva_c2(const void *buf, int cnt)
+static uint8_t crc8_caicheva_c2(const void *buf, int cnt)
 {
-	u8_t val = 0;
-	const u8_t *ptr = buf;
+	uint8_t val = 0;
+	const uint8_t *ptr = buf;
 
 	for (int i = (cnt - 1); i >= 0; i--) {
 		val = crc_table[(val >> 4) ^ (ptr[i] >> 4)] ^ (val << 4);
@@ -169,11 +169,11 @@ static u8_t crc8_caicheva_c2(const void *buf, int cnt)
 
 static int has_odd_parity(void *buf, int cnt)
 {
-	u8_t *ptr = buf;
+	uint8_t *ptr = buf;
 	int val = 0;
 
 	for (int i = 0; i < cnt; i++) {
-		u8_t reg = ptr[i];
+		uint8_t reg = ptr[i];
 
 		while (reg) {
 			val ^= (reg & 0x1);
@@ -183,9 +183,9 @@ static int has_odd_parity(void *buf, int cnt)
 	return val;
 }
 
-static int check_response(u32_t data_word)
+static int check_response(uint32_t data_word)
 {
-	u32_t payload = sys_cpu_to_le32(data_word);
+	uint32_t payload = sys_cpu_to_le32(data_word);
 
 	if (crc8_caicheva_c2(&payload, 4) != 0) {
 		LOG_ERR("crc error detected");
@@ -276,7 +276,7 @@ static int aisx120sx_raw_cmd_acc(const struct aisx120sx_data *data,
 	req.fields.channel_select = channel,
 	req.fields.sen = sen;
 	req.fields.odd_parity = !has_odd_parity(req.data_buf + 1, 3);
-	u32_t crc_payload = sys_cpu_to_le32(req.data_word >> 8);
+	uint32_t crc_payload = sys_cpu_to_le32(req.data_word >> 8);
 
 	req.fields.crc = crc8_caicheva_c2(&crc_payload, 3);
 	req.data_word = sys_cpu_to_be32(req.data_word);
@@ -327,7 +327,7 @@ static int aisx120sx_raw_cmd_acc(const struct aisx120sx_data *data,
 static int aisx120sx_raw_cmd_single(const struct aisx120sx_data *dev,
 				    enum aisx120sx_opcode op,
 				    enum aisx120sx_sensor_req_type sen,
-				    const u8_t addr, const u8_t data,
+				    const uint8_t addr, const uint8_t data,
 				    union none_acc_response *resp)
 {
 	union none_acc_req_data req = { .data_word = 0 };
@@ -339,7 +339,7 @@ static int aisx120sx_raw_cmd_single(const struct aisx120sx_data *dev,
 	req.fields.sen = sen;
 	req.fields.odd_parity = !has_odd_parity(req.data_buf + 1, 3);
 
-	u32_t crc_payload = sys_cpu_to_le32(req.data_word >> 8);
+	uint32_t crc_payload = sys_cpu_to_le32(req.data_word >> 8);
 
 	req.fields.crc = crc8_caicheva_c2(&crc_payload, 3);
 	req.data_word = sys_cpu_to_be32(req.data_word);
@@ -375,7 +375,7 @@ static int aisx120sx_raw_cmd_single(const struct aisx120sx_data *dev,
 static int aisx120sx_raw_cmd_no_check(const struct aisx120sx_data *dev,
 				      enum aisx120sx_opcode op,
 				      enum aisx120sx_sensor_req_type sen,
-				      const u8_t addr, const u8_t data,
+				      const uint8_t addr, const uint8_t data,
 				      union none_acc_response *resp)
 {
 	union none_acc_req_data req = { .data_word = 0 };
@@ -387,7 +387,7 @@ static int aisx120sx_raw_cmd_no_check(const struct aisx120sx_data *dev,
 	req.fields.sen = sen;
 	req.fields.odd_parity = !has_odd_parity(req.data_buf + 1, 3);
 
-	u32_t crc_payload = sys_cpu_to_le32(req.data_word >> 8);
+	uint32_t crc_payload = sys_cpu_to_le32(req.data_word >> 8);
 
 	req.fields.crc = crc8_caicheva_c2(&crc_payload, 3);
 
@@ -436,7 +436,7 @@ static int aisx120sx_raw_cmd_no_check(const struct aisx120sx_data *dev,
 static int aisx120sx_raw_cmd(const struct aisx120sx_data *dev,
 			     enum aisx120sx_opcode op,
 			     enum aisx120sx_sensor_req_type sen,
-			     const u8_t addr, const u8_t data,
+			     const uint8_t addr, const uint8_t data,
 			     union none_acc_response *resp)
 {
 	int res = aisx120sx_raw_cmd_no_check(dev, op, sen, addr, data, resp);
@@ -550,7 +550,7 @@ static int aisx120sx_attr_set(struct device *dev, enum sensor_channel chan,
 	}
 
 	if (attr == (enum sensor_attribute) AISX120SX_ATTR_BW) {
-		u8_t field_val;
+		uint8_t field_val;
 
 		switch (val->val1) {
 		case 400:
@@ -633,7 +633,7 @@ static int aisx120sx_sample_fetch(struct device *dev,
 			return res;
 		}
 
-		data->acc_x = (s16_t)(resp.fields.data << 2) / 4;
+		data->acc_x = (int16_t)(resp.fields.data << 2) / 4;
 	}
 
 	if (channel == SENSOR_CHAN_ACCEL_Y || channel == SENSOR_CHAN_ALL) {
@@ -644,16 +644,16 @@ static int aisx120sx_sample_fetch(struct device *dev,
 			return res;
 		}
 
-		data->acc_y = (s16_t)(resp.fields.data << 2) / 4;
+		data->acc_y = (int16_t)(resp.fields.data << 2) / 4;
 	}
 
 	return 0;
 }
 
-static void aisx120sx_raw_to_sensor_val(const s16_t raw_value,
+static void aisx120sx_raw_to_sensor_val(const int16_t raw_value,
 					struct sensor_value *val)
 {
-	s32_t raw = raw_value * (1000000 / 68);
+	int32_t raw = raw_value * (1000000 / 68);
 
 	val->val1 = raw / 1000000;
 	val->val2 = raw % 1000000;
@@ -732,7 +732,7 @@ static int aisx120sx_self_test_single(struct device *dev,
 	struct sensor_value val;
 
 	const struct aisx120sx_data *data = dev->driver_data;
-	u8_t self_test_cmds[] = { SELF_TEST_ZERO, SELF_TEST_POS, SELF_TEST_ZERO,
+	uint8_t self_test_cmds[] = { SELF_TEST_ZERO, SELF_TEST_POS, SELF_TEST_ZERO,
 				  SELF_TEST_NEG, SELF_TEST_ZERO };
 	int offset = 0;
 
