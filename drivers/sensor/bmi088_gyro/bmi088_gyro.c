@@ -83,10 +83,10 @@ static void bmi088_samples_convert(struct bmi088_gyr_data *data,
 	}
 }
 
-static int bmi088_gyr_sample_fetch(struct device *dev,
+static int bmi088_gyr_sample_fetch(const struct device *dev,
 				   enum sensor_channel channel)
 {
-	struct bmi088_gyr_data *data = dev->driver_data;
+	struct bmi088_gyr_data *data = dev->data;
 	void *data_start;
 	uint8_t start_reg;
 	int count;
@@ -131,11 +131,11 @@ static int bmi088_gyr_sample_fetch(struct device *dev,
 	return 0;
 }
 
-static int bmi088_gyr_attr_set(struct device *dev, enum sensor_channel chan,
+static int bmi088_gyr_attr_set(const struct device *dev, enum sensor_channel chan,
 			       enum sensor_attribute attr,
 			       const struct sensor_value *val)
 {
-	struct bmi088_gyr_data *data = dev->driver_data;
+	struct bmi088_gyr_data *data = dev->data;
 	uint8_t reg;
 	uint8_t reg_val;
 
@@ -205,10 +205,10 @@ static int bmi088_gyr_attr_set(struct device *dev, enum sensor_channel chan,
 	return 0;
 }
 
-static int bmi088_gyr_channel_get(struct device *dev, enum sensor_channel chan,
+static int bmi088_gyr_channel_get(const struct device *dev, enum sensor_channel chan,
 				  struct sensor_value *val)
 {
-	struct bmi088_gyr_data *data = dev->driver_data;
+	struct bmi088_gyr_data *data = dev->data;
 
 	switch (chan) {
 	case SENSOR_CHAN_GYRO_X:
@@ -230,10 +230,10 @@ static int bmi088_gyr_channel_get(struct device *dev, enum sensor_channel chan,
 	}
 }
 
-static int bmi088_gyr_init(struct device *dev)
+static int bmi088_gyr_init(const struct device *dev)
 {
-	struct bmi088_gyr_data *data = dev->driver_data;
-	const struct bmi088_gyr_config *config = dev->config->config_info;
+	struct bmi088_gyr_data *data = dev->data;
+	const struct bmi088_gyr_config *const config = dev->config;
 
 	data->bmi088_com_dev = device_get_binding(config->bmi088_com_dev_name);
 	if (!data->bmi088_com_dev) {
@@ -246,7 +246,7 @@ static int bmi088_gyr_init(struct device *dev)
 	data->gyro_odr =        BMI088_GYRO_DEFAULT_BANDWIDTH;
 	data->gyro_range =      BMI088_GYRO_DEFAULT_RANGE;
 
-#ifdef DT_ON_BUS(DT_INST_LABEL(0), spi)
+#if DT_INST_ON_BUS(0, spi)
 	bmi088_gyr_spi_init(data);
 #else
 	bmi088_gyr_i2c_init(data);
@@ -278,7 +278,7 @@ static int bmi088_gyr_init(struct device *dev)
 	}
 
 	while (!(gyro_self_test_val & BMI088_MASK_GYRO_SELF_TEST_BIST_RDY)) {
-		k_sleep(10);
+		k_sleep(K_MSEC(10));
 		data->tf->read_register(data, BMI088_REG_GYRO_SELF_TEST,
 					1, &gyro_self_test_val);
 	}
@@ -315,7 +315,7 @@ static const struct sensor_driver_api bmi088_gyr_api_funcs = {
 };
 
 DEVICE_DT_INST_DEFINE(0, bmi088_gyr_init,
-		      device_pm_control_nop
+		      device_pm_control_nop,
 		      &bmi088_gyr_data,
 		      &bmi088_gyr_config,
 		      POST_KERNEL,

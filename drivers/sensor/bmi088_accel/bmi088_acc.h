@@ -116,7 +116,7 @@
 
 
 struct bmi088_acc_data {
-	struct device *bmi088_com_dev;
+	const struct device *bmi088_com_dev;
 	const struct bmi088_transfer_function *tf;
 
 	uint8_t acc_odr;
