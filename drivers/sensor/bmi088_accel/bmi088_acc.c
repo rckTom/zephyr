@@ -141,10 +141,10 @@ static void bmi088_samples_convert(struct bmi088_acc_data *data,
 
 }
 
-static int bmi088_acc_sample_fetch(struct device *dev,
+static int bmi088_acc_sample_fetch(const struct device *dev,
 				   enum sensor_channel channel)
 {
-	struct bmi088_acc_data *data = dev->driver_data;
+	struct bmi088_acc_data *data = dev->data;
 	void *data_start;
 	uint8_t start_reg;
 	int count;
@@ -204,7 +204,7 @@ static int bmi088_acc_reset(struct bmi088_acc_data *data)
 
 	k_sleep(K_MSEC(30));
 
-	#if DT_ON_BUS(DT_INST_LABEL(0), spi)
+	#if DT_INST_ON_BUS(0, spi)
 	res = data->tf->read_register(data, BMI088_REG_ACC_CHIP_ID, 1, &reg);
 	#endif
 
@@ -255,9 +255,9 @@ static int bmi088_acc_enable(struct bmi088_acc_data *data)
  *  section 4.6.1
  */
 
-static int bmi088_self_test(struct device *dev)
+static int bmi088_self_test(const struct device *dev)
 {
-	struct bmi088_acc_data *data = dev->driver_data;
+	struct bmi088_acc_data *data = dev->data;
 	const struct bmi088_transfer_function *tf = data->tf;
 	struct sensor_value val_p[3];
 	struct sensor_value val_n[3];
@@ -361,12 +361,12 @@ fail:
 }
 
 
-static int bmi088_acc_attr_set(struct device *dev,
+static int bmi088_acc_attr_set(const struct device *dev,
 			       enum sensor_channel chan,
 			       enum sensor_attribute attr,
 			       const struct sensor_value *val)
 {
-	struct bmi088_acc_data *data = dev->driver_data;
+	struct bmi088_acc_data *data = dev->data;
 	uint8_t reg;
 	uint8_t reg_val = 0;
 
@@ -447,10 +447,10 @@ static int bmi088_acc_attr_set(struct device *dev,
 	return data->tf->write_register(data, reg, 1, &reg_val);
 }
 
-static int bmi088_acc_channel_get(struct device *dev, enum sensor_channel chan,
+static int bmi088_acc_channel_get(const struct device *dev, enum sensor_channel chan,
 				  struct sensor_value *val)
 {
-	struct bmi088_acc_data *data = dev->driver_data;
+	struct bmi088_acc_data *data = dev->data;
 
 	switch (chan) {
 	case SENSOR_CHAN_ACCEL_X:
@@ -476,10 +476,10 @@ static int bmi088_acc_channel_get(struct device *dev, enum sensor_channel chan,
 	return 0;
 }
 
-static int bmi088_acc_init(struct device *dev)
+static int bmi088_acc_init(const struct device *dev)
 {
-	struct bmi088_acc_data *data = dev->driver_data;
-	const struct bmi088_acc_config *config = dev->config->config_info;
+	struct bmi088_acc_data *data = dev->data;
+	const struct bmi088_acc_config *const config = dev->config;
 	int res;
 	uint8_t reg;
 
@@ -495,7 +495,7 @@ static int bmi088_acc_init(struct device *dev)
 	data->acc_range = BMI088_ACC_DEFAULT_RANGE;
 	data->acc_bandwidth = BMI088_ACC_DEFAULT_BANDWIDTH;
 
-#if defined(DT_BOSCH_BMI088_ACCEL_BUS_SPI)
+#if DT_INST_ON_BUS(0, spi) 
 	bmi088_acc_spi_init(data);
 #else
 	bmi088_i2c_init(data);

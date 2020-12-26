@@ -88,7 +88,7 @@ enum BMI088_GYRO_ATTR {
 };
 
 struct bmi088_gyr_data {
-	struct device *bmi088_com_dev;
+	const struct device *bmi088_com_dev;
 	const struct bmi088_transfer_function *tf;
 
 	uint8_t gyro_odr;
